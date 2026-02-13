@@ -51,7 +51,7 @@ body {
   padding: 12px 25px;
   border-radius: 30px;
   border: none;
-  background: #fff;
+  background: #ffffff21;
   font-weight: 600;
   cursor: pointer;
 }
@@ -131,4 +131,16 @@ body {
     height: auto;
   }
   .right-card { grid-column: span 1; }
+}
+
+grid-template-columns: 1fr 1.5fr 0.8fr;
+
+@media (max-width: 768px) {
+  body { overflow-y: auto; }
+  .app { height: auto; }
+
+  .main-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
 }
