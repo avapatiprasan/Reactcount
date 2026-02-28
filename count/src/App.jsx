@@ -1,11 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
   const [input, setInput] = useState("");
   const [data, setData] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth > 768 && window.innerWidth <= 1100
+  );
 
   const API_KEY = "c19712e9f07fdfcfa189baa61f631878";
+
+  // Detect screen size
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(
+        window.innerWidth > 768 && window.innerWidth <= 1100
+      );
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   function getTimeClass() {
     const hour = new Date().getHours();
@@ -36,56 +52,159 @@ function App() {
     return days[d.getDay()];
   };
 
+  // Grid Layout Logic
+  const gridStyle = {
+    display: "grid",
+    gap: "20px",
+    flex: 1,
+    gridTemplateColumns: isMobile
+      ? "1fr"
+      : isTablet
+      ? "1fr 1fr"
+      : "1fr 1.5fr 1fr",
+  };
+
   return (
-    <div className={`app ${getTimeClass()}`}>
-      <div className="search-container">
+    <div
+      className={`app ${getTimeClass()}`}
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        padding: "20px",
+        color: "white",
+      }}
+    >
+      {/* SEARCH */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "25px",
+          flexWrap: "wrap",
+        }}
+      >
         <input
           type="text"
           placeholder="Search city..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && fetchData()}
+          style={{
+            padding: "12px 20px",
+            borderRadius: "30px",
+            border: "none",
+            outline: "none",
+            width: "clamp(220px, 40vw, 450px)",
+          }}
         />
-        <button onClick={fetchData}>Search</button>
+        <button
+          onClick={fetchData}
+          style={{
+            padding: "12px 25px",
+            borderRadius: "30px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Search
+        </button>
       </div>
 
-      <div className="main-container">
-        {/* LEFT CARD: CURRENT WEATHER */}
+      {/* MAIN GRID */}
+      <div style={gridStyle}>
+        {/* LEFT CARD */}
         {data && (
-          <div className="left-card">
-            <div className="top-info">
-              <h1>{Math.round(data.main.temp)}°</h1>
-              <div className="weather-condition">
-                <h3>{data.weather[0].main}</h3>
-                <p>Feels like {Math.round(data.main.feels_like)}°</p>
-              </div>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: "25px",
+              padding: "25px",
+            }}
+          >
+            <div>
+              <h1 style={{ fontSize: "clamp(3rem,6vw,6rem)", fontWeight: 200 }}>
+                {Math.round(data.main.temp)}°
+              </h1>
+              <h3>{data.weather[0].main}</h3>
+              <p>Feels like {Math.round(data.main.feels_like)}°</p>
             </div>
-            <div className="bottom-details">
-              <div className="info-box"><span>Wind</span><p>{data.wind.speed}m/s</p></div>
-              <div className="info-box"><span>Humidity</span><p>{data.main.humidity}%</p></div>
-              <div className="info-box"><span>Pressure</span><p>{data.main.pressure}hPa</p></div>
+
+            <div style={{ marginTop: "25px", display: "grid", gap: "10px" }}>
+              <div>
+                <small>Wind</small>
+                <p>{data.wind.speed} m/s</p>
+              </div>
+              <div>
+                <small>Humidity</small>
+                <p>{data.main.humidity}%</p>
+              </div>
+              <div>
+                <small>Pressure</small>
+                <p>{data.main.pressure} hPa</p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* MIDDLE CARD: DYNAMIC MAP */}
-        <div className="map-card">
+        {/* MAP CARD */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            borderRadius: "25px",
+            overflow: "hidden",
+            minHeight: "300px",
+          }}
+        >
           {data ? (
             <iframe
               title="city-map"
               src={`https://maps.google.com/maps?q=${data.coord.lat},${data.coord.lon}&z=10&output=embed`}
-            ></iframe>
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
           ) : (
-            <div className="map-placeholder">Enter a city to see the map</div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              Enter a city to see the map
+            </div>
           )}
         </div>
 
-        {/* RIGHT CARD: WEEKLY FORECAST */}
-        <div className="right-card">
+        {/* RIGHT CARD */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            borderRadius: "25px",
+            padding: "25px",
+          }}
+        >
           <h2>7-Day Forecast</h2>
-          <div className="forecast-container">
+
+          <div style={{ marginTop: "15px", display: "grid", gap: "10px" }}>
             {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="day-row">
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "12px",
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "12px",
+                }}
+              >
                 <span>{i === 0 ? "Today" : getDay(i)}</span>
                 <span>☀️</span>
                 <p>{data ? Math.round(data.main.temp - i) : "--"}°</p>
@@ -99,4 +218,3 @@ function App() {
 }
 
 export default App;
-
